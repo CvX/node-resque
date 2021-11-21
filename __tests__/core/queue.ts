@@ -66,7 +66,6 @@ describe("queue", () => {
     });
 
     test("can add delayed job whose timestamp is a string (enqueueAt)", async () => {
-      //@ts-ignore
       await queue.enqueueAt("10000", specHelper.queue, "someJob", [1, 2, 3]);
       const score = await specHelper.redis.zscore(
         specHelper.namespace + ":delayed_queue_schedule",
@@ -241,7 +240,6 @@ describe("queue", () => {
     });
 
     test("can handle single arguments without explicit array", async () => {
-      // @ts-ignore
       await queue.enqueue(specHelper.queue, "someJob", 1);
       const obj = await specHelper.popFromQueue();
       expect(JSON.parse(obj).args).toEqual([1]);

@@ -128,7 +128,7 @@ describe("scheduler", () => {
         const jobs = {
           stuck: {
             perform: async function () {
-              await new Promise((resolve) => {
+              await new Promise(() => {
                 // stop the worker from checking in, like the process crashed
                 // don't resolve
                 clearTimeout(this.pingTimer);
@@ -168,7 +168,7 @@ describe("scheduler", () => {
 
             scheduler.on(
               "cleanStuckWorker",
-              async (workerName, errorPayload, delta) => {
+              async (workerName, errorPayload) => {
                 // response data should contain failure
                 expect(workerName).toEqual(worker.name);
                 expect(errorPayload.worker).toEqual(worker.name);

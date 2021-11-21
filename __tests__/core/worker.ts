@@ -7,7 +7,6 @@ const jobs: { [key: string]: Job<any> } = {
       return a + b;
     },
   } as Job<any>,
-  //@ts-ignore
   badAdd: {
     perform: () => {
       throw new Error("Blue Smoke");
@@ -129,8 +128,7 @@ describe("worker", () => {
       await worker.checkQueues();
       expect(worker.queues).toEqual([specHelper.queue]);
 
-      //@ts-ignore
-      await queue.del(specHelper.queue);
+      await queue.delQueue(specHelper.queue);
       await worker.end();
     });
 
@@ -221,19 +219,23 @@ describe("worker", () => {
         });
 
         // TODO: Typescript seems to have trouble with frozen objects
-        // test('job arguments are immutable', async (done) => {
-        //   await queue.enqueue(specHelper.queue, 'messWithData', { a: 'starting value' })
+        // test("job arguments are immutable", async () => {
+        //   await new Promise(async (resolve) => {
+        //     await queue.enqueue(specHelper.queue, "messWithData", {
+        //       a: "starting value",
+        //     });
 
-        //   worker.start()
+        //     worker.start();
 
-        //   worker.on('success', (q, job, result) => {
-        //     expect(result.a).toBe('starting value')
-        //     expect(worker.result).toBe(result)
+        //     worker.on("success", (q, job, result) => {
+        //       expect(result.a).toBe("starting value");
+        //       expect(worker.result).toBe(result);
 
-        //     worker.removeAllListeners('success')
-        //     done()
-        //   })
-        // })
+        //       worker.removeAllListeners("success");
+        //       resolve(null);
+        //     });
+        //   });
+        // });
 
         test("can accept jobs that are simple functions", async () => {
           await new Promise(async (resolve) => {
@@ -284,7 +286,7 @@ describe("worker", () => {
             const nowInSeconds = Math.round(new Date().getTime() / 1000);
             await worker.start();
             await new Promise((resolve) =>
-              setTimeout(resolve, worker.options.timeout * 2)
+              setTimeout(resolve, (worker.options.timeout as number) * 2)
             );
             const pingKey = worker.connection.key(
               "worker",
@@ -292,7 +294,7 @@ describe("worker", () => {
               worker.name
             );
             const firstPayload = JSON.parse(
-              await specHelper.redis.get(pingKey)
+              (await specHelper.redis.get(pingKey)) as string
             );
             expect(firstPayload.name).toEqual(worker.name);
             expect(firstPayload.time).toBeGreaterThanOrEqual(nowInSeconds);
@@ -306,7 +308,7 @@ describe("worker", () => {
             });
 
             const secondPayload = JSON.parse(
-              await specHelper.redis.get(pingKey)
+              (await specHelper.redis.get(pingKey)) as string
             );
             expect(secondPayload.name).toEqual(worker.name);
             expect(secondPayload.time).toBeGreaterThanOrEqual(

@@ -237,11 +237,11 @@ export class MultiWorker extends EventEmitter {
       const promises: Promise<unknown>[] = [];
       this.workers.forEach((worker) => {
         promises.push(
-          new Promise(async (resolve) => {
+          (async (): Promise<null> => {
             await worker.end();
             await this.cleanupWorker(worker);
-            return resolve(null);
-          })
+            return null;
+          })()
         );
       });
 

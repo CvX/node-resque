@@ -11,7 +11,7 @@ const SpecHelper = {
   queue: queue,
   timeout: 500,
   smallTimeout: 3,
-  redis: null as IORedis.Redis,
+  redis: null as unknown as IORedis.Redis,
   connectionDetails: {
     pkg: pkg,
     host: process.env.REDIS_HOST || "127.0.0.1",

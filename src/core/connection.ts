@@ -5,7 +5,7 @@ import * as path from "path";
 import { ConnectionOptions } from "..";
 
 interface EventListeners {
-  [key: string]: Function;
+  [key: string]: (...args: unknown[]) => void;
 }
 
 export class Connection extends EventEmitter {
@@ -158,9 +158,7 @@ export class Connection extends EventEmitter {
     this.connected = false;
   }
 
-  key(arg: any, arg2?: any, arg3?: any, arg4?: any): string {
-    let args;
-    args = arguments.length >= 1 ? [].slice.call(arguments, 0) : [];
+  key(...args: any[]): string {
     if (Array.isArray(this.options.namespace)) {
       args.unshift(...this.options.namespace);
     } else {

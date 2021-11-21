@@ -79,7 +79,7 @@ export class Queue extends EventEmitter {
    * - The job will be added to the `queueName` queue, and that queue will be worked down by available workers assigned to that queue
    * - args is optional, but should be an array of arguments passed to the job. Order of arguments is maintained
    */
-  async enqueue(q: string, func: string, args: Array<any> = []) {
+  async enqueue(q: string, func: string, args: Array<any> | any = []) {
     args = arrayify(args);
     const job = this.jobs[func];
 
@@ -101,7 +101,7 @@ export class Queue extends EventEmitter {
    * - other options the same as `queue.enqueue`
    */
   async enqueueAt(
-    timestamp: number,
+    timestamp: number | string,
     q: string,
     func: string,
     args: Array<any> = [],
@@ -110,6 +110,9 @@ export class Queue extends EventEmitter {
     // Don't run plugins here, they should be run by scheduler at the enqueue step
     args = arrayify(args);
     const item = this.encode(q, func, args);
+    if (typeof timestamp === "string") {
+      timestamp = parseInt(timestamp, 10);
+    }
     const rTimestamp = Math.round(timestamp / 1000); // assume timestamp is in ms
 
     const match = "delayed:" + rTimestamp;
@@ -186,7 +189,7 @@ export class Queue extends EventEmitter {
    * - jobs are deleted by those matching a `func` and argument collection within a given queue.
    * - You might match none, or you might match many.
    */
-  async del(q: string, func: string, args: Array<any> = [], count: number = 0) {
+  async del(q: string, func: string, args: Array<any> = [], count = 0) {
     args = arrayify(args);
     return this.connection.redis.lrem(
       this.connection.key("queue", q),
@@ -206,18 +209,13 @@ export class Queue extends EventEmitter {
    * @param stop - optional place to end looking in list (default: end of list)
    * @returns number of jobs deleted from queue
    */
-  async delByFunction(
-    q: string,
-    func: string,
-    start: number = 0,
-    stop: number = -1
-  ) {
+  async delByFunction(q: string, func: string, start = 0, stop = -1) {
     const jobs = await this.connection.redis.lrange(
       this.connection.key("queue", q),
       start,
       stop
     );
-    let numJobsDeleted: number = 0;
+    let numJobsDeleted = 0;
     for (let i = 0; i < jobs.length; i++) {
       const jobEncoded = jobs[i];
       const { class: jobFunc } = JSON.parse(jobEncoded) as ParsedJob;

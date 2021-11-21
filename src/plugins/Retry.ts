@@ -3,6 +3,7 @@
 
 import * as os from "os";
 import { Plugin, Worker, ParsedJob, Queue } from "..";
+
 export class Retry extends Plugin {
   constructor(
     worker: Queue | Worker,

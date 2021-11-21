@@ -5,6 +5,27 @@ import { WorkerOptions } from "../types/options";
 import { Connection } from "./connection";
 import { RunPlugins } from "./pluginRunner";
 import { ParsedJob, Queue } from "./queue";
+import * as IORedis from "ioredis";
+
+interface ExtendedRedis extends IORedis.Redis {
+  popAndStoreJob?(
+    queueKey: string,
+    workerKey: string,
+    runAt: string,
+    queue: string,
+    worker: string
+  ): string;
+}
+
+interface ExtendedCluster extends IORedis.Cluster {
+  popAndStoreJob?(
+    queueKey: string,
+    workerKey: string,
+    runAt: string,
+    queue: string,
+    worker: string
+  ): string;
+}
 
 function prepareJobs(jobs: Jobs) {
   return Object.keys(jobs).reduce((h: { [key: string]: any }, k) => {
@@ -423,11 +444,10 @@ export class Worker extends EventEmitter {
     );
 
     let encodedJob: string;
+    const redis = this.connection.redis as ExtendedRedis | ExtendedCluster;
 
-    //@ts-ignore
-    if (this.connection.redis["popAndStoreJob"]) {
-      //@ts-ignore
-      encodedJob = await this.connection.redis["popAndStoreJob"](
+    if (redis["popAndStoreJob"]) {
+      encodedJob = await redis["popAndStoreJob"](
         queueKey,
         workerKey,
         new Date().toString(),
@@ -435,9 +455,9 @@ export class Worker extends EventEmitter {
         this.name
       );
     } else {
-      encodedJob = await this.connection.redis.lpop(queueKey);
+      encodedJob = await redis.lpop(queueKey);
       if (encodedJob) {
-        await this.connection.redis.set(
+        await redis.set(
           workerKey,
           JSON.stringify({
             run_at: new Date().toString(),

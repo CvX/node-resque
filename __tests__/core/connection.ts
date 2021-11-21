@@ -21,8 +21,7 @@ describe("connection", () => {
   test("it has loaded Lua commands", async () => {
     const connection = new Connection(specHelper.cleanConnectionDetails());
     await connection.connect();
-    //@ts-ignore
-    expect(typeof connection.redis["popAndStoreJob"]).toBe("function");
+    expect(typeof (connection.redis as any)["popAndStoreJob"]).toBe("function");
     connection.end();
   });
 
@@ -37,7 +36,7 @@ describe("connection", () => {
     let prefixedConnection: Connection;
     let prefixedRedis: IORedis.Redis;
     beforeAll(async () => {
-      prefixedRedis = new IORedis(null, null, {
+      prefixedRedis = new IORedis(undefined, undefined, {
         keyPrefix: "customNamespace:",
         db: db,
       });
@@ -121,7 +120,6 @@ describe("connection", () => {
     });
 
     test("keys built with a array namespace are correct", () => {
-      //@ts-ignore
       connection.options.namespace = ["custom", "namespace"];
       expect(connection.key("thing")).toBe("custom:namespace:thing");
 
@@ -147,7 +145,9 @@ describe("connection", () => {
     connectionDetails.database = 9;
     const connection = new Connection(connectionDetails);
     await connection.connect();
-    // expect(connection.redis.options.db).toBe(connectionDetails.database)
+    expect((connection.redis as IORedis.Redis).options.db).toBe(
+      connectionDetails.database
+    );
     connection.end();
   });
 
